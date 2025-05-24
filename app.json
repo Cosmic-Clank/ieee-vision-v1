@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "vision",
-    "slug": "vision",
+    "slug": "ieee-vision-v1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -58,8 +58,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "87d469ca-6599-45c0-9ceb-3acc82ebbe21"
+        "projectId": "1f06ad72-1da6-43d3-8111-8fd02841f13c"
       }
-    }
+    },
+    "owner": "cosmic_clank"
   }
 }
