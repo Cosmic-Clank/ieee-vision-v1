@@ -1,8 +1,8 @@
 import { PaintStyle, Skia } from "@shopify/react-native-skia";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { runOnJS } from "react-native-reanimated";
-import { Camera, useCameraDevice, useCameraPermission, useSkiaFrameProcessor } from "react-native-vision-camera";
+import { Camera, useCameraDevice, useCameraFormat, useCameraPermission, useSkiaFrameProcessor } from "react-native-vision-camera";
+import { useRunOnJS } from "react-native-worklets-core";
 
 const WS_URL = "ws://192.168.1.125:8000/ws"; // Replace with your backend IP
 
@@ -12,14 +12,21 @@ export default function VisionYOLO() {
 	const ws = useRef<WebSocket | null>(null);
 	const [boxes, setBoxes] = useState<any[]>([]);
 
-	const sendDataToBackend = (data: Uint8Array) => {
-		if (ws.current && ws.current.readyState === 1) {
-			ws.current.send(data);
+	const sendDataToBackend = useRunOnJS((metadata: string) => {
+		console.log("Sending data to backend:", metadata);
+		if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+			ws.current.send(JSON.stringify({ metadata }));
 		} else {
-			console.warn("WebSocket not ready");
+			console.error("WebSocket is not open. Cannot send data.");
 		}
-	};
+	}, []);
 
+	const format = useCameraFormat(device, [
+		{
+			fps: 10,
+			videoResolution: { width: 352, height: 288 }, // ✅ lower res
+		},
+	]);
 	// Request camera permission on mount
 	useEffect(() => {
 		requestPermission();
@@ -32,7 +39,6 @@ export default function VisionYOLO() {
 		ws.current.onmessage = (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				setBoxes(data);
 			} catch (err) {
 				console.error("Failed to parse box JSON:", err);
 			}
@@ -67,9 +73,10 @@ export default function VisionYOLO() {
 			// 	frame.drawRect({ x: x1, y: y1, width: x2 - x1, height: y2 - y1 }, paint);
 			// }
 			const buffer = frame.toArrayBuffer();
-			const data = new Uint8Array(buffer);
+			const gray = new Uint8Array(buffer, 0, frame.width * frame.height);
 
-			runOnJS(sendDataToBackend)(data); // ✅ this works
+			console.log(frame.width, frame.height, frame.pixelFormat);
+			sendDataToBackend(gray.length.toString());
 		},
 		[boxes]
 	);
@@ -84,7 +91,7 @@ export default function VisionYOLO() {
 
 	return (
 		<View style={styles.container}>
-			<Camera style={StyleSheet.absoluteFill} device={device} isActive={true} frameProcessor={frameProcessor} />
+			<Camera style={StyleSheet.absoluteFill} device={device} isActive={true} frameProcessor={frameProcessor} fps={10} format={format} />
 		</View>
 	);
 }
