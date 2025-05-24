@@ -1,6 +1,7 @@
 import { PaintStyle, Skia } from "@shopify/react-native-skia";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { runOnJS } from "react-native-reanimated";
 import { Camera, useCameraDevice, useCameraPermission, useSkiaFrameProcessor } from "react-native-vision-camera";
 
 const WS_URL = "ws://192.168.1.125:8000/ws"; // Replace with your backend IP
@@ -10,6 +11,14 @@ export default function VisionYOLO() {
 	const device = useCameraDevice("back");
 	const ws = useRef<WebSocket | null>(null);
 	const [boxes, setBoxes] = useState<any[]>([]);
+
+	const sendDataToBackend = (data: Uint8Array) => {
+		if (ws.current && ws.current.readyState === 1) {
+			ws.current.send(data);
+		} else {
+			console.warn("WebSocket not ready");
+		}
+	};
 
 	// Request camera permission on mount
 	useEffect(() => {
@@ -53,10 +62,14 @@ export default function VisionYOLO() {
 			frame.render();
 
 			// Draw each bounding box
-			for (const box of boxes) {
-				const [x1, y1, x2, y2] = box.box;
-				frame.drawRect({ x: x1, y: y1, width: x2 - x1, height: y2 - y1 }, paint);
-			}
+			// for (const box of boxes) {
+			// 	const [x1, y1, x2, y2] = box.box;
+			// 	frame.drawRect({ x: x1, y: y1, width: x2 - x1, height: y2 - y1 }, paint);
+			// }
+			const buffer = frame.toArrayBuffer();
+			const data = new Uint8Array(buffer);
+
+			runOnJS(sendDataToBackend)(data); // ✅ this works
 		},
 		[boxes]
 	);
