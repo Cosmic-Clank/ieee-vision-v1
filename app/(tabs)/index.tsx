@@ -9,13 +9,17 @@ const WS_URL = "ws://192.168.1.125:8000/ws"; // Replace with your backend IP
 export default function VisionYOLO() {
 	const { hasPermission, requestPermission } = useCameraPermission();
 	const device = useCameraDevice("back");
-	const ws = useRef<WebSocket | null>(null);
 	const [boxes, setBoxes] = useState<any[]>([]);
+	const ws = useRef<WebSocket | null>(null);
 
-	const sendDataToBackend = useRunOnJS((metadata: string) => {
-		console.log("Sending data to backend:", metadata);
+	const boxesRef = useRef<any[]>([]);
+	useEffect(() => {
+		boxesRef.current = boxes;
+	}, [boxes]);
+
+	const sendDataToBackend = useRunOnJS((data: any) => {
 		if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-			ws.current.send(JSON.stringify({ metadata }));
+			ws.current.send(JSON.stringify(data));
 		} else {
 			console.error("WebSocket is not open. Cannot send data.");
 		}
@@ -24,21 +28,21 @@ export default function VisionYOLO() {
 	const format = useCameraFormat(device, [
 		{
 			fps: 10,
-			videoResolution: { width: 352, height: 288 }, // ✅ lower res
+			videoResolution: { width: 352, height: 288 },
 		},
 	]);
-	// Request camera permission on mount
+
 	useEffect(() => {
 		requestPermission();
 	}, [requestPermission]);
 
-	// Establish WebSocket connection
 	useEffect(() => {
 		ws.current = new WebSocket(WS_URL);
 
 		ws.current.onmessage = (event) => {
 			try {
 				const data = JSON.parse(event.data);
+				setBoxes(data);
 			} catch (err) {
 				console.error("Failed to parse box JSON:", err);
 			}
@@ -53,33 +57,31 @@ export default function VisionYOLO() {
 		};
 	}, []);
 
-	// Define Skia paint for drawing
-	const paint = Skia.Paint();
-	paint.setStyle(PaintStyle.Stroke);
-	paint.setColor(Skia.Color("lime"));
-	paint.setStrokeWidth(2);
+	const frameProcessor = useSkiaFrameProcessor((frame) => {
+		"worklet";
 
-	// Frame processor to render camera frame and draw boxes
-	const frameProcessor = useSkiaFrameProcessor(
-		(frame) => {
-			"worklet";
+		frame.render();
 
-			// Render the camera frame
-			frame.render();
+		const currentBoxes = boxesRef.current ?? [];
+		const paint = Skia.Paint();
+		paint.setColor(Skia.Color("red"));
+		paint.setStyle(PaintStyle.Stroke);
+		paint.setStrokeWidth(2);
+		for (const box of currentBoxes) {
+			const [x1, y1, x2, y2] = box.box;
+			const rect = Skia.XYWHRect(x1, y1, x2 - x1, y2 - y1);
+			frame.drawRect(rect, paint);
+		}
 
-			// Draw each bounding box
-			// for (const box of boxes) {
-			// 	const [x1, y1, x2, y2] = box.box;
-			// 	frame.drawRect({ x: x1, y: y1, width: x2 - x1, height: y2 - y1 }, paint);
-			// }
-			const buffer = frame.toArrayBuffer();
-			const gray = new Uint8Array(buffer, 0, frame.width * frame.height);
+		const buffer = frame.toArrayBuffer();
+		const data = {
+			width: frame.width,
+			height: frame.height,
+			image: new Uint8Array(buffer).toString(),
+		};
 
-			console.log(frame.width, frame.height, frame.pixelFormat);
-			sendDataToBackend(gray.length.toString());
-		},
-		[boxes]
-	);
+		// sendDataToBackend(data);
+	}, []);
 
 	if (!hasPermission || device == null) {
 		return (

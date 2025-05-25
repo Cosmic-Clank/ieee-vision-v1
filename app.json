@@ -55,6 +55,12 @@
 						"minSdkVersion": 26
 					}
 				}
+			],
+			[
+				"react-native-fast-tflite",
+				{
+					"enableCoreMLDelegate": true
+				}
 			]
 		],
 		"experiments": {
