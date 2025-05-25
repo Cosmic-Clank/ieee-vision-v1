@@ -1,112 +1,85 @@
-import { PaintStyle, Skia } from "@shopify/react-native-skia";
-import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Camera, useCameraDevice, useCameraFormat, useCameraPermission, useSkiaFrameProcessor } from "react-native-vision-camera";
-import { useRunOnJS } from "react-native-worklets-core";
+import * as cocoSsd from "@tensorflow-models/coco-ssd";
+import * as tf from "@tensorflow/tfjs";
+import { Tensor3D } from "@tensorflow/tfjs";
+import { cameraWithTensors } from "@tensorflow/tfjs-react-native";
+import { Camera, CameraType } from "expo-camera";
+import { ExpoWebGLRenderingContext } from "expo-gl";
+import React, { JSX, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
 
-const WS_URL = "ws://192.168.1.125:8000/ws"; // Replace with your backend IP
+const TensorCamera = cameraWithTensors(Camera);
+const { width, height } = Dimensions.get("window");
 
-export default function VisionYOLO() {
-	const { hasPermission, requestPermission } = useCameraPermission();
-	const device = useCameraDevice("back");
-	const [boxes, setBoxes] = useState<any[]>([]);
-	const ws = useRef<WebSocket | null>(null);
-
-	const boxesRef = useRef<any[]>([]);
-	useEffect(() => {
-		boxesRef.current = boxes;
-	}, [boxes]);
-
-	const sendDataToBackend = useRunOnJS((data: any) => {
-		if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-			ws.current.send(JSON.stringify(data));
-		} else {
-			console.error("WebSocket is not open. Cannot send data.");
-		}
-	}, []);
-
-	const format = useCameraFormat(device, [
-		{
-			fps: 10,
-			videoResolution: { width: 352, height: 288 },
-		},
-	]);
+export default function App(): JSX.Element {
+	const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+	const [isTfReady, setIsTfReady] = useState(false);
+	const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
+	const [predictions, setPredictions] = useState<cocoSsd.DetectedObject[]>([]);
+	const rafId = useRef<number | null>(null);
 
 	useEffect(() => {
-		requestPermission();
-	}, [requestPermission]);
+		(async () => {
+			const { status } = await Camera.requestCameraPermissionsAsync();
+			setHasPermission(status === "granted");
 
-	useEffect(() => {
-		ws.current = new WebSocket(WS_URL);
+			await tf.ready();
+			await tf.setBackend("rn-webgl");
+			setIsTfReady(true);
 
-		ws.current.onmessage = (event) => {
-			try {
-				const data = JSON.parse(event.data);
-				setBoxes(data);
-			} catch (err) {
-				console.error("Failed to parse box JSON:", err);
-			}
-		};
-
-		ws.current.onerror = (err) => {
-			console.error("WebSocket error:", err);
-		};
+			const loadedModel = await cocoSsd.load();
+			setModel(loadedModel);
+		})();
 
 		return () => {
-			ws.current?.close();
+			if (rafId.current) cancelAnimationFrame(rafId.current);
 		};
 	}, []);
 
-	const frameProcessor = useSkiaFrameProcessor((frame) => {
-		"worklet";
-
-		frame.render();
-
-		const currentBoxes = boxesRef.current ?? [];
-		const paint = Skia.Paint();
-		paint.setColor(Skia.Color("red"));
-		paint.setStyle(PaintStyle.Stroke);
-		paint.setStrokeWidth(2);
-		for (const box of currentBoxes) {
-			const [x1, y1, x2, y2] = box.box;
-			const rect = Skia.XYWHRect(x1, y1, x2 - x1, y2 - y1);
-			frame.drawRect(rect, paint);
-		}
-
-		const buffer = frame.toArrayBuffer();
-		const data = {
-			width: frame.width,
-			height: frame.height,
-			image: new Uint8Array(buffer).toString(),
+	const handleCameraStream = (images: IterableIterator<Tensor3D>, updatePreview: () => void, gl: ExpoWebGLRenderingContext) => {
+		const loop = async () => {
+			const imageTensor = images.next().value;
+			if (model && imageTensor) {
+				const preds = await model.detect(imageTensor);
+				setPredictions(preds);
+				tf.dispose([imageTensor]);
+			}
+			rafId.current = requestAnimationFrame(loop);
 		};
+		loop();
+	};
 
-		// sendDataToBackend(data);
-	}, []);
-
-	if (!hasPermission || device == null) {
-		return (
-			<View style={styles.center}>
-				<Text style={{ color: "#fff" }}>Waiting for camera permission...</Text>
-			</View>
-		);
-	}
+	if (hasPermission === null) return <View />;
+	if (hasPermission === false) return <Text>No access to camera</Text>;
+	if (!isTfReady || !model) return <ActivityIndicator style={styles.loading} size='large' />;
 
 	return (
 		<View style={styles.container}>
-			<Camera style={StyleSheet.absoluteFill} device={device} isActive={true} frameProcessor={frameProcessor} fps={10} format={format} />
+			<TensorCamera style={styles.camera} type={CameraType.back} cameraTextureHeight={1920} cameraTextureWidth={1080} resizeHeight={300} resizeWidth={300} resizeDepth={3} onReady={handleCameraStream} autorender useCustomShadersToResize={false} />
+			<View style={styles.predictions}>
+				{predictions.map((p, i) => (
+					<Text key={i} style={styles.text}>
+						{`${p.class} (${Math.round(p.score * 100)}%)`}
+					</Text>
+				))}
+			</View>
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
+	container: { flex: 1, backgroundColor: "#000" },
+	camera: { width: "100%", height: "70%" },
+	predictions: {
 		flex: 1,
-		backgroundColor: "black",
+		padding: 10,
+		backgroundColor: "#fff",
 	},
-	center: {
+	text: {
+		fontSize: 16,
+		color: "#000",
+	},
+	loading: {
 		flex: 1,
-		alignItems: "center",
 		justifyContent: "center",
-		backgroundColor: "black",
 	},
 });
