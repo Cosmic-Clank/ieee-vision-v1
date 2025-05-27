@@ -1,85 +1,151 @@
-import * as cocoSsd from "@tensorflow-models/coco-ssd";
-import * as tf from "@tensorflow/tfjs";
-import { Tensor3D } from "@tensorflow/tfjs";
-import { cameraWithTensors } from "@tensorflow/tfjs-react-native";
-import { Camera, CameraType } from "expo-camera";
-import { ExpoWebGLRenderingContext } from "expo-gl";
-import React, { JSX, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from "react-native";
+import { useAppState } from "@react-native-community/hooks";
+import { useIsFocused } from "@react-navigation/native";
+import { Canvas, Rect, Text as SkiaText, useFont } from "@shopify/react-native-skia";
+import * as Speech from "expo-speech";
+import React, { useEffect, useRef, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Camera, useCameraDevice, useCameraFormat, useCameraPermission, useSkiaFrameProcessor } from "react-native-vision-camera";
+import { useRunOnJS } from "react-native-worklets-core";
 
-const TensorCamera = cameraWithTensors(Camera);
-const { width, height } = Dimensions.get("window");
+const WS_URL = "ws://192.168.1.125:8000/ws"; // Replace with your backend IP
+const HAZARD_LABELS = ["bottle", "gun", "fire"];
 
-export default function App(): JSX.Element {
-	const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-	const [isTfReady, setIsTfReady] = useState(false);
-	const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
-	const [predictions, setPredictions] = useState<cocoSsd.DetectedObject[]>([]);
-	const rafId = useRef<number | null>(null);
+export default function VisionYOLO() {
+	const { hasPermission, requestPermission } = useCameraPermission();
+	const device = useCameraDevice("back");
+	const [boxes, setBoxes] = useState<{ box: [number, number, number, number]; confidence: number; label: string }[]>([]);
+	const [wsConnected, setWsConnected] = useState(false);
+	const ws = useRef<WebSocket | null>(null);
+	const font = useFont(require("@/assets/fonts/SpaceMono-Regular.ttf"), 12);
+	const spokenHazards = useRef<Map<string, NodeJS.Timeout | number>>(new Map());
+
+	const isFocused = useIsFocused();
+	const appState = useAppState();
+	const isActive = isFocused && appState === "active";
+
+	const boxesRef = useRef<any[]>([]);
+	useEffect(() => {
+		boxesRef.current = boxes;
+
+		// Check for hazards and speak
+		boxes.forEach((box) => {
+			if (HAZARD_LABELS.includes(box.label) && !spokenHazards.current.has(box.label)) {
+				Speech.speak(`Warning, ${box.label} hazard detected.`);
+				const timeout = setTimeout(() => {
+					spokenHazards.current.delete(box.label);
+				}, 5000); // Speak again after 5 seconds
+				spokenHazards.current.set(box.label, timeout);
+			}
+		});
+	}, [boxes]);
+
+	const sendDataToBackend = useRunOnJS((data: any) => {
+		if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+			ws.current.send(JSON.stringify(data));
+		} else {
+			console.error("WebSocket is not open. Cannot send data.");
+		}
+	}, []);
+
+	const format = useCameraFormat(device, []);
 
 	useEffect(() => {
-		(async () => {
-			const { status } = await Camera.requestCameraPermissionsAsync();
-			setHasPermission(status === "granted");
+		requestPermission();
+	}, [requestPermission]);
 
-			await tf.ready();
-			await tf.setBackend("rn-webgl");
-			setIsTfReady(true);
+	useEffect(() => {
+		let reconnectTimeout: ReturnType<typeof setTimeout>;
 
-			const loadedModel = await cocoSsd.load();
-			setModel(loadedModel);
-		})();
+		function connectWebSocket() {
+			ws.current = new WebSocket(WS_URL);
+
+			ws.current.onopen = () => {
+				console.log("WebSocket connected");
+				setWsConnected(true);
+			};
+
+			ws.current.onmessage = (event) => {
+				try {
+					const data = JSON.parse(event.data);
+					setBoxes(data);
+				} catch (err) {
+					console.error("Failed to parse box JSON:", err);
+				}
+			};
+
+			ws.current.onerror = (err) => {
+				console.error("WebSocket error:", err);
+			};
+
+			ws.current.onclose = () => {
+				console.warn("WebSocket disconnected, attempting to reconnect...");
+				setWsConnected(false);
+				reconnectTimeout = setTimeout(connectWebSocket, 2000); // try again after 2s
+			};
+		}
+
+		connectWebSocket();
 
 		return () => {
-			if (rafId.current) cancelAnimationFrame(rafId.current);
+			clearTimeout(reconnectTimeout);
+			ws.current?.close();
 		};
 	}, []);
 
-	const handleCameraStream = (images: IterableIterator<Tensor3D>, updatePreview: () => void, gl: ExpoWebGLRenderingContext) => {
-		const loop = async () => {
-			const imageTensor = images.next().value;
-			if (model && imageTensor) {
-				const preds = await model.detect(imageTensor);
-				setPredictions(preds);
-				tf.dispose([imageTensor]);
-			}
-			rafId.current = requestAnimationFrame(loop);
-		};
-		loop();
-	};
+	const lastSentRef = useRef<number | null>(null);
 
-	if (hasPermission === null) return <View />;
-	if (hasPermission === false) return <Text>No access to camera</Text>;
-	if (!isTfReady || !model) return <ActivityIndicator style={styles.loading} size='large' />;
+	const frameProcessor = useSkiaFrameProcessor((frame) => {
+		"worklet";
+
+		frame.render();
+
+		if (!lastSentRef.current || frame.timestamp - lastSentRef.current > 100_000_000) {
+			lastSentRef.current = frame.timestamp;
+			const buffer = frame.toArrayBuffer();
+			const data = {
+				width: frame.width,
+				height: frame.height,
+				image: new Uint8Array(buffer).toString(),
+			};
+			sendDataToBackend(data);
+		}
+	}, []);
+
+	if (!hasPermission || device == null) {
+		return (
+			<View style={styles.center}>
+				<Text style={{ color: "#fff" }}>Waiting for camera permission...</Text>
+			</View>
+		);
+	}
 
 	return (
 		<View style={styles.container}>
-			<TensorCamera style={styles.camera} type={CameraType.back} cameraTextureHeight={1920} cameraTextureWidth={1080} resizeHeight={300} resizeWidth={300} resizeDepth={3} onReady={handleCameraStream} autorender useCustomShadersToResize={false} />
-			<View style={styles.predictions}>
-				{predictions.map((p, i) => (
-					<Text key={i} style={styles.text}>
-						{`${p.class} (${Math.round(p.score * 100)}%)`}
-					</Text>
-				))}
-			</View>
+			<Camera style={{ position: "absolute", width: 480, height: 640 }} device={device} isActive={isActive} frameProcessor={frameProcessor} pixelFormat='yuv' />
+			<Canvas style={StyleSheet.absoluteFill}>
+				{boxes.map((box, index) => {
+					const [x1, y1, x2, y2] = box.box;
+					return (
+						<React.Fragment key={index}>
+							<Rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} color='lime' style='stroke' strokeWidth={2} />
+							<SkiaText x={x1} y={y1 - 4} text={`${box.label} (${(box.confidence * 100).toFixed(1)}%)`} color='lime' font={font} />
+						</React.Fragment>
+					);
+				})}
+			</Canvas>
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, backgroundColor: "#000" },
-	camera: { width: "100%", height: "70%" },
-	predictions: {
+	container: {
 		flex: 1,
-		padding: 10,
-		backgroundColor: "#fff",
+		backgroundColor: "black",
 	},
-	text: {
-		fontSize: 16,
-		color: "#000",
-	},
-	loading: {
+	center: {
 		flex: 1,
+		alignItems: "center",
 		justifyContent: "center",
+		backgroundColor: "black",
 	},
 });
