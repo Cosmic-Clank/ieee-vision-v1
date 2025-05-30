@@ -1,3 +1,5 @@
+import Config from "@/constants/config.json";
+import { useAppStore } from "@/hooks/useAppStore";
 import { useAppState } from "@react-native-community/hooks";
 import { useIsFocused } from "@react-navigation/native";
 import { Canvas, Rect, Text as SkiaText, useFont } from "@shopify/react-native-skia";
@@ -7,8 +9,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { Camera, useCameraDevice, useCameraFormat, useCameraPermission, useSkiaFrameProcessor } from "react-native-vision-camera";
 import { useRunOnJS } from "react-native-worklets-core";
 
-const WS_URL = "ws://192.168.1.125:8000/ws"; // Replace with your backend IP
-const HAZARD_LABELS = ["bottle", "gun", "fire"];
+const WS_URL = `ws://${Config.backendURLBase}/ws`; // Replace with your backend IP
+const HAZARD_LABELS = ["gun", "fire"];
 
 export default function VisionYOLO() {
 	const { hasPermission, requestPermission } = useCameraPermission();
@@ -18,7 +20,6 @@ export default function VisionYOLO() {
 	const ws = useRef<WebSocket | null>(null);
 	const font = useFont(require("@/assets/fonts/SpaceMono-Regular.ttf"), 12);
 	const spokenHazards = useRef<Map<string, NodeJS.Timeout | number>>(new Map());
-	const [clientId, setClientId] = useState<string | null>(null);
 
 	const isFocused = useIsFocused();
 	const appState = useAppState();
@@ -72,7 +73,7 @@ export default function VisionYOLO() {
 					const data = JSON.parse(event.data);
 					if (data.client_id) {
 						// Received client ID on connection
-						setClientId(data.client_id);
+						useAppStore.getState().setClientId(data.client_id);
 						console.log("Received client_id:", data.client_id);
 					} else {
 						setBoxes(data);
@@ -108,7 +109,7 @@ export default function VisionYOLO() {
 
 		frame.render();
 
-		if (!lastSentRef.current || frame.timestamp - lastSentRef.current > 100_000_000) {
+		if (!lastSentRef.current || frame.timestamp - lastSentRef.current > 200_000_000) {
 			lastSentRef.current = frame.timestamp;
 			const buffer = frame.toArrayBuffer();
 			const data = {
