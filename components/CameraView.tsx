@@ -47,7 +47,7 @@ export default function VisionYOLO() {
 		if (ws.current && ws.current.readyState === WebSocket.OPEN) {
 			ws.current.send(JSON.stringify(data));
 		} else {
-			console.error("WebSocket is not open. Cannot send data.");
+			// console.error("WebSocket is not open. Cannot send data.");
 		}
 	}, []);
 
@@ -84,11 +84,11 @@ export default function VisionYOLO() {
 			};
 
 			ws.current.onerror = (err) => {
-				console.error("WebSocket error:", err);
+				// console.error("WebSocket error:", err);
 			};
 
 			ws.current.onclose = () => {
-				console.warn("WebSocket disconnected, attempting to reconnect...");
+				// console.warn("WebSocket disconnected, attempting to reconnect...");
 				setWsConnected(false);
 				reconnectTimeout = setTimeout(connectWebSocket, 2000); // try again after 2s
 			};
