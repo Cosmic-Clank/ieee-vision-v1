@@ -1,10 +1,10 @@
+import "react-native-url-polyfill/auto";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Session } from "@supabase/supabase-js";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { Text } from "react-native";
 import "react-native-reanimated";
-import "react-native-url-polyfill/auto";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { supabase } from "@/lib/supabase";
