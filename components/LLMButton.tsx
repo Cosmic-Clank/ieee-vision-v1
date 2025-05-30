@@ -11,6 +11,23 @@ export default function App() {
 	const [isRecording, setIsRecording] = useState(false);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const clientId = useAppStore((state) => state.clientId);
+	const sizeSetting = useAppStore((state) => state.settings?.size || "medium");
+
+	const getIconSize = () => {
+		switch (sizeSetting) {
+			case "small":
+				return 60;
+			case "large":
+				return 90;
+			default:
+				return 75;
+		}
+	};
+
+	const getButtonSize = () => {
+		const iconSize = getIconSize();
+		return 40 + iconSize; // make button larger proportionally
+	};
 
 	const record = async () => {
 		Speech.stop();
@@ -63,6 +80,9 @@ export default function App() {
 		})();
 	}, []);
 
+	const buttonSize = getButtonSize();
+	const iconSize = getIconSize();
+
 	return (
 		<Pressable
 			onPress={isRecording ? stopRecording : record}
@@ -71,18 +91,18 @@ export default function App() {
 				styles.micButton,
 				{
 					backgroundColor: isProcessing ? "#95a5a6" : pressed ? "#c0392b" : isRecording ? "#e74c3c" : "#2ecc71",
+					width: buttonSize,
+					height: buttonSize,
+					borderRadius: buttonSize / 2,
 				},
 			]}>
-			{isProcessing ? <ActivityIndicator size='small' color='#fff' /> : <MaterialIcons name={isRecording ? "mic-off" : "mic"} size={40} color='#fff' />}
+			{isProcessing ? <ActivityIndicator size='small' color='#fff' /> : <MaterialIcons name={isRecording ? "mic-off" : "mic"} size={iconSize} color='#fff' />}
 		</Pressable>
 	);
 }
 
 const styles = StyleSheet.create({
 	micButton: {
-		width: 80,
-		height: 80,
-		borderRadius: 40,
 		justifyContent: "center",
 		alignItems: "center",
 		elevation: 4,

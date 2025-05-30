@@ -9,8 +9,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { Camera, useCameraDevice, useCameraFormat, useCameraPermission, useSkiaFrameProcessor } from "react-native-vision-camera";
 import { useRunOnJS } from "react-native-worklets-core";
 
-const WS_URL = `ws://${Config.backendURLBase}/ws`; // Replace with your backend IP
-const HAZARD_LABELS = ["gun", "fire"];
+const WS_URL = `ws://${Config.backendURLBase}/ws`;
 
 export default function VisionYOLO() {
 	const { hasPermission, requestPermission } = useCameraPermission();
@@ -18,8 +17,11 @@ export default function VisionYOLO() {
 	const [boxes, setBoxes] = useState<{ box: [number, number, number, number]; confidence: number; label: string }[]>([]);
 	const [wsConnected, setWsConnected] = useState(false);
 	const ws = useRef<WebSocket | null>(null);
-	const font = useFont(require("@/assets/fonts/SpaceMono-Regular.ttf"), 12);
+	const font = useFont(require("@/assets/fonts/SpaceMono-Regular.ttf"), 16); // slightly larger
+
 	const spokenHazards = useRef<Map<string, NodeJS.Timeout | number>>(new Map());
+	const settings = useAppStore((state) => state.settings);
+	const hazardLabels = settings?.hazards ?? [];
 
 	const isFocused = useIsFocused();
 	const appState = useAppState();
@@ -29,25 +31,22 @@ export default function VisionYOLO() {
 	useEffect(() => {
 		boxesRef.current = boxes;
 
-		// Check for hazards and speak
 		if (Array.isArray(boxes)) {
 			boxes.forEach((box) => {
-				if (HAZARD_LABELS.includes(box.label) && !spokenHazards.current.has(box.label)) {
-					Speech.speak(`Warning, ${box.label} hazard detected.`);
+				if (hazardLabels.includes(box.label) && !spokenHazards.current.has(box.label)) {
+					Speech.speak(`Warning, ${box.label} detected infront of you.`);
 					const timeout = setTimeout(() => {
 						spokenHazards.current.delete(box.label);
-					}, 5000); // Speak again after 5 seconds
+					}, 5000);
 					spokenHazards.current.set(box.label, timeout);
 				}
 			});
 		}
-	}, [boxes]);
+	}, [boxes, hazardLabels]);
 
 	const sendDataToBackend = useRunOnJS((data: any) => {
 		if (ws.current && ws.current.readyState === WebSocket.OPEN) {
 			ws.current.send(JSON.stringify(data));
-		} else {
-			// console.error("WebSocket is not open. Cannot send data.");
 		}
 	}, []);
 
@@ -72,7 +71,6 @@ export default function VisionYOLO() {
 				try {
 					const data = JSON.parse(event.data);
 					if (data.client_id) {
-						// Received client ID on connection
 						useAppStore.getState().setClientId(data.client_id);
 						console.log("Received client_id:", data.client_id);
 					} else {
@@ -83,14 +81,11 @@ export default function VisionYOLO() {
 				}
 			};
 
-			ws.current.onerror = (err) => {
-				// console.error("WebSocket error:", err);
-			};
+			ws.current.onerror = () => {};
 
 			ws.current.onclose = () => {
-				// console.warn("WebSocket disconnected, attempting to reconnect...");
 				setWsConnected(false);
-				reconnectTimeout = setTimeout(connectWebSocket, 2000); // try again after 2s
+				reconnectTimeout = setTimeout(connectWebSocket, 2000);
 			};
 		}
 
@@ -133,17 +128,18 @@ export default function VisionYOLO() {
 		<View style={styles.container}>
 			<Camera style={{ position: "absolute", width: 480, height: 640 }} device={device} isActive={isActive} frameProcessor={frameProcessor} pixelFormat='yuv' />
 			<Canvas style={StyleSheet.absoluteFill}>
-				{Array.isArray(boxes)
-					? boxes.map((box, index) => {
-							const [x1, y1, x2, y2] = box.box;
-							return (
-								<React.Fragment key={index}>
-									<Rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} color='lime' style='stroke' strokeWidth={2} />
-									<SkiaText x={x1} y={y1 - 4} text={`${box.label} (${(box.confidence * 100).toFixed(1)}%)`} color='lime' font={font} />
-								</React.Fragment>
-							);
-					  })
-					: null}
+				{Array.isArray(boxes) &&
+					font &&
+					boxes.map((box, index) => {
+						const [x1, y1, x2, y2] = box.box;
+						const isHazard = hazardLabels.includes(box.label);
+						return (
+							<React.Fragment key={index}>
+								<Rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} color={isHazard ? "red" : "lime"} style='stroke' strokeWidth={3} />
+								<SkiaText x={x1} y={y1 - 6} text={`${box.label} (${(box.confidence * 100).toFixed(1)}%)`} color={isHazard ? "red" : "lime"} font={font} />
+							</React.Fragment>
+						);
+					})}
 			</Canvas>
 		</View>
 	);

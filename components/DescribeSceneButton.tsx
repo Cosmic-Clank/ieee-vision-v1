@@ -8,6 +8,23 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet } from "react-native";
 export default function DescribeSceneButton() {
 	const [isProcessing, setIsProcessing] = useState(false);
 	const clientId = useAppStore((state) => state.clientId);
+	const sizeSetting = useAppStore((state) => state.settings?.size || "medium");
+
+	const getIconSize = () => {
+		switch (sizeSetting) {
+			case "small":
+				return 40;
+			case "large":
+				return 70;
+			default:
+				return 55;
+		}
+	};
+
+	const getButtonSize = () => {
+		const icon = getIconSize();
+		return 40 + icon;
+	};
 
 	const handleDescribeScene = async () => {
 		Speech.stop();
@@ -17,7 +34,9 @@ export default function DescribeSceneButton() {
 			const response = await fetch(`http://${config.backendURLBase}/llm-from-text?client_id=${clientId}`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ prompt: "describe the scene in front of me in a short but descriptive manner, without too much extra information" }),
+				body: JSON.stringify({
+					prompt: "describe the scene in front of me in a short but descriptive manner, without too much extra information",
+				}),
 			});
 
 			if (!response.ok) throw new Error("Failed to get description");
@@ -37,6 +56,9 @@ export default function DescribeSceneButton() {
 		}
 	};
 
+	const buttonSize = getButtonSize();
+	const iconSize = getIconSize();
+
 	return (
 		<Pressable
 			onPress={handleDescribeScene}
@@ -45,18 +67,18 @@ export default function DescribeSceneButton() {
 				styles.button,
 				{
 					backgroundColor: isProcessing ? "#95a5a6" : pressed ? "#8e44ad" : "#9b59b6",
+					width: buttonSize,
+					height: buttonSize,
+					borderRadius: buttonSize / 2,
 				},
 			]}>
-			{isProcessing ? <ActivityIndicator size='small' color='#fff' /> : <MaterialIcons name='image-search' size={36} color='#fff' />}
+			{isProcessing ? <ActivityIndicator size='small' color='#fff' /> : <MaterialIcons name='image-search' size={iconSize} color='#fff' />}
 		</Pressable>
 	);
 }
 
 const styles = StyleSheet.create({
 	button: {
-		width: 80,
-		height: 80,
-		borderRadius: 40,
 		justifyContent: "center",
 		alignItems: "center",
 		elevation: 4,

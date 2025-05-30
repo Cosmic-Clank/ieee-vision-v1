@@ -5,11 +5,19 @@ import { Platform } from "react-native";
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
+import language from "@/constants/language.json";
+import { useAppStore } from "@/hooks/useAppStore";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
+type LanguageKey = keyof typeof language;
+
 export default function TabLayout() {
 	const colorScheme = useColorScheme();
+	const selectedLang = (useAppStore((state) => state.settings?.language) || "en") as keyof (typeof language)[LanguageKey extends keyof typeof language ? LanguageKey : never];
+
+	// Translation helper
+	const t = (key: LanguageKey) => language[key]?.[selectedLang as "en" | "ar"] ?? key;
 
 	return (
 		<Tabs
@@ -20,7 +28,6 @@ export default function TabLayout() {
 				tabBarBackground: TabBarBackground,
 				tabBarStyle: Platform.select({
 					ios: {
-						// Use a transparent background on iOS to show the blur effect
 						position: "absolute",
 					},
 					default: {},
@@ -30,14 +37,21 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name='index'
 				options={{
-					title: "Camera",
+					title: t("camera"),
 					tabBarIcon: ({ color }) => <MaterialIcons color={color} size={28} name={"camera"} />,
+				}}
+			/>
+			<Tabs.Screen
+				name='files'
+				options={{
+					title: t("files"),
+					tabBarIcon: ({ color }) => <MaterialIcons color={color} size={28} name={"document-scanner"} />,
 				}}
 			/>
 			<Tabs.Screen
 				name='settings'
 				options={{
-					title: "Settings",
+					title: t("settings"),
 					tabBarIcon: ({ color }) => <MaterialIcons color={color} size={28} name={"settings"} />,
 				}}
 			/>

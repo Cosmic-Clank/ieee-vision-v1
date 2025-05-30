@@ -8,6 +8,7 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet } from "react-native";
 export default function OCRButton() {
 	const [isProcessing, setIsProcessing] = useState(false);
 	const clientId = useAppStore((state) => state.clientId);
+	const sizeSetting = useAppStore((state) => state.settings?.size || "medium");
 
 	const triggerOCR = async () => {
 		Speech.stop();
@@ -32,6 +33,25 @@ export default function OCRButton() {
 		}
 	};
 
+	const getIconSize = () => {
+		switch (sizeSetting) {
+			case "small":
+				return 40;
+			case "large":
+				return 70;
+			default:
+				return 55;
+		}
+	};
+
+	const getButtonSize = () => {
+		const icon = getIconSize();
+		return 40 + icon;
+	};
+
+	const buttonSize = getButtonSize();
+	const iconSize = getIconSize();
+
 	return (
 		<Pressable
 			onPress={triggerOCR}
@@ -40,18 +60,18 @@ export default function OCRButton() {
 				styles.micButton,
 				{
 					backgroundColor: isProcessing ? "#95a5a6" : pressed ? "#2980b9" : "#3498db",
+					width: buttonSize,
+					height: buttonSize,
+					borderRadius: buttonSize / 2,
 				},
 			]}>
-			{isProcessing ? <ActivityIndicator size='small' color='#fff' /> : <MaterialIcons name='text-fields' size={40} color='#fff' />}
+			{isProcessing ? <ActivityIndicator size='small' color='#fff' /> : <MaterialIcons name='text-fields' size={iconSize} color='#fff' />}
 		</Pressable>
 	);
 }
 
 const styles = StyleSheet.create({
 	micButton: {
-		width: 80,
-		height: 80,
-		borderRadius: 40,
 		justifyContent: "center",
 		alignItems: "center",
 		elevation: 4,

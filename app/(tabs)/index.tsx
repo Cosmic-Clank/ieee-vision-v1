@@ -9,7 +9,7 @@ const index = () => {
 	return (
 		<View style={styles.container}>
 			<VisionYOLO />
-			<View style={{ flex: 1 / 3, justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 20 }}>
+			<View style={{ flex: 1 / 3, justifyContent: "center", alignItems: "center", flexDirection: "row", gap: 30 }}>
 				<OCRButton />
 				<LLMButton />
 				<DescribeSceneButton />

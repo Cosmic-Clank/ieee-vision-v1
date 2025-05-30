@@ -1,0 +1,90 @@
+{
+	"language": {
+		"en": "Language",
+		"ar": "اللغة"
+	},
+	"english": {
+		"en": "English",
+		"ar": "الإنجليزية"
+	},
+	"arabic": { "en": "Arabic", "ar": "العربية" },
+	"text size": {
+		"en": "Text Size",
+		"ar": "حجم النص"
+	},
+	"small": {
+		"en": "Small",
+		"ar": "صغير"
+	},
+	"medium": {
+		"en": "Medium",
+		"ar": "متوسط"
+	},
+	"large": {
+		"en": "Large",
+		"ar": "كبير"
+	},
+	"hazards": {
+		"en": "Hazards",
+		"ar": "المخاطر"
+	},
+	"car": {
+		"en": "Car",
+		"ar": "سيارة"
+	},
+	"motor bike": { "en": "Motor Bike", "ar": "دراجة نارية" },
+	"bus": {
+		"en": "Bus",
+		"ar": "حافلة"
+	},
+	"train": {
+		"en": "Train",
+		"ar": "قطار"
+	},
+	"truck": {
+		"en": "Truck",
+		"ar": "شاحنة"
+	},
+	"traffic light": {
+		"en": "Traffic Light",
+		"ar": "إشارة المرور"
+	},
+	"fire hydrant": {
+		"en": "Fire Hydrant",
+		"ar": "صنبور إطفاء"
+	},
+
+	"stop sign": {
+		"en": "Stop Sign",
+		"ar": "علامة توقف"
+	},
+
+	"parking meter": {
+		"en": "Parking Meter",
+		"ar": "عداد وقوف السيارات"
+	},
+	"save settings": {
+		"en": "Save Settings",
+		"ar": "حفظ الإعدادات"
+	},
+	"sign out": {
+		"en": "Sign Out",
+		"ar": "تسجيل الخروج"
+	},
+	"failed to save settings": {
+		"en": "Failed to save settings",
+		"ar": "فشل في حفظ الإعدادات"
+	},
+	"camera": {
+		"en": "Camera",
+		"ar": "الكاميرا"
+	},
+	"settings": {
+		"en": "Settings",
+		"ar": "الإعدادات"
+	},
+	"files": {
+		"en": "Files",
+		"ar": "الملفات"
+	}
+}
