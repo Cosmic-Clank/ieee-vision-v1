@@ -1,10 +1,11 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
+import { Text } from "react-native";
 import "react-native-reanimated";
+import "react-native-url-polyfill/auto";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { Stack } from "expo-router";
 
 export default function RootLayout() {
 	const colorScheme = useColorScheme();
@@ -20,10 +21,11 @@ export default function RootLayout() {
 
 	return (
 		<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-			<Stack>
+			{/* <Stack>
 				<Stack.Screen name='(tabs)' options={{ headerShown: false }} />
 				<Stack.Screen name='+not-found' />
-			</Stack>
+			</Stack> */}
+			<Text>Session: {session ? JSON.stringify(session) : "No session"}</Text>
 			<StatusBar style='auto' />
 		</ThemeProvider>
 	);
