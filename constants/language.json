@@ -1,90 +1,111 @@
 {
-	"language": {
-		"en": "Language",
-		"ar": "اللغة"
-	},
-	"english": {
-		"en": "English",
-		"ar": "الإنجليزية"
-	},
+	"language": { "en": "Language", "ar": "اللغة" },
+	"english": { "en": "English", "ar": "الإنجليزية" },
 	"arabic": { "en": "Arabic", "ar": "العربية" },
-	"text size": {
-		"en": "Text Size",
-		"ar": "حجم النص"
-	},
-	"small": {
-		"en": "Small",
-		"ar": "صغير"
-	},
-	"medium": {
-		"en": "Medium",
-		"ar": "متوسط"
-	},
-	"large": {
-		"en": "Large",
-		"ar": "كبير"
-	},
-	"hazards": {
-		"en": "Hazards",
-		"ar": "المخاطر"
-	},
-	"car": {
-		"en": "Car",
-		"ar": "سيارة"
-	},
+	"text size": { "en": "Text Size", "ar": "حجم النص" },
+	"small": { "en": "Small", "ar": "صغير" },
+	"medium": { "en": "Medium", "ar": "متوسط" },
+	"large": { "en": "Large", "ar": "كبير" },
+	"hazards": { "en": "Hazards", "ar": "المخاطر" },
+	"car": { "en": "Car", "ar": "سيارة" },
 	"motor bike": { "en": "Motor Bike", "ar": "دراجة نارية" },
-	"bus": {
-		"en": "Bus",
-		"ar": "حافلة"
-	},
-	"train": {
-		"en": "Train",
-		"ar": "قطار"
-	},
-	"truck": {
-		"en": "Truck",
-		"ar": "شاحنة"
-	},
-	"traffic light": {
-		"en": "Traffic Light",
-		"ar": "إشارة المرور"
-	},
-	"fire hydrant": {
-		"en": "Fire Hydrant",
-		"ar": "صنبور إطفاء"
-	},
+	"bus": { "en": "Bus", "ar": "حافلة" },
+	"train": { "en": "Train", "ar": "قطار" },
+	"truck": { "en": "Truck", "ar": "شاحنة" },
+	"traffic light": { "en": "Traffic Light", "ar": "إشارة المرور" },
+	"fire hydrant": { "en": "Fire Hydrant", "ar": "صنبور إطفاء" },
+	"stop sign": { "en": "Stop Sign", "ar": "علامة توقف" },
+	"parking meter": { "en": "Parking Meter", "ar": "عداد وقوف السيارات" },
+	"save settings": { "en": "Save Settings", "ar": "حفظ الإعدادات" },
+	"sign out": { "en": "Sign Out", "ar": "تسجيل الخروج" },
+	"failed to save settings": { "en": "Failed to save settings", "ar": "فشل في حفظ الإعدادات" },
+	"camera": { "en": "Camera", "ar": "الكاميرا" },
+	"settings": { "en": "Settings", "ar": "الإعدادات" },
+	"files": { "en": "Files", "ar": "الملفات" },
+	"tutorial": { "en": "Tutorial", "ar": "الدليل" },
 
-	"stop sign": {
-		"en": "Stop Sign",
-		"ar": "علامة توقف"
-	},
-
-	"parking meter": {
-		"en": "Parking Meter",
-		"ar": "عداد وقوف السيارات"
-	},
-	"save settings": {
-		"en": "Save Settings",
-		"ar": "حفظ الإعدادات"
-	},
-	"sign out": {
-		"en": "Sign Out",
-		"ar": "تسجيل الخروج"
-	},
-	"failed to save settings": {
-		"en": "Failed to save settings",
-		"ar": "فشل في حفظ الإعدادات"
-	},
-	"camera": {
-		"en": "Camera",
-		"ar": "الكاميرا"
-	},
-	"settings": {
-		"en": "Settings",
-		"ar": "الإعدادات"
-	},
-	"files": {
-		"en": "Files",
-		"ar": "الملفات"
-	}
+	"person": { "en": "Person", "ar": "شخص" },
+	"bicycle": { "en": "Bicycle", "ar": "دراجة" },
+	"motorbike": { "en": "Motorbike", "ar": "دراجة نارية" },
+	"aeroplane": { "en": "Aeroplane", "ar": "طائرة" },
+	"boat": { "en": "Boat", "ar": "قارب" },
+	"bird": { "en": "Bird", "ar": "طائر" },
+	"cat": { "en": "Cat", "ar": "قطة" },
+	"dog": { "en": "Dog", "ar": "كلب" },
+	"horse": { "en": "Horse", "ar": "حصان" },
+	"sheep": { "en": "Sheep", "ar": "خروف" },
+	"cow": { "en": "Cow", "ar": "بقرة" },
+	"elephant": { "en": "Elephant", "ar": "فيل" },
+	"bear": { "en": "Bear", "ar": "دب" },
+	"zebra": { "en": "Zebra", "ar": "حمار وحشي" },
+	"giraffe": { "en": "Giraffe", "ar": "زرافة" },
+	"backpack": { "en": "Backpack", "ar": "حقيبة ظهر" },
+	"umbrella": { "en": "Umbrella", "ar": "مظلة" },
+	"handbag": { "en": "Handbag", "ar": "حقيبة يد" },
+	"tie": { "en": "Tie", "ar": "ربطة عنق" },
+	"suitcase": { "en": "Suitcase", "ar": "حقيبة سفر" },
+	"frisbee": { "en": "Frisbee", "ar": "فريسبي" },
+	"skis": { "en": "Skis", "ar": "زلاجات" },
+	"snowboard": { "en": "Snowboard", "ar": "لوح التزلج" },
+	"sports ball": { "en": "Sports Ball", "ar": "كرة رياضية" },
+	"kite": { "en": "Kite", "ar": "طائرة ورقية" },
+	"baseball bat": { "en": "Baseball Bat", "ar": "مضرب بيسبول" },
+	"baseball glove": { "en": "Baseball Glove", "ar": "قفاز بيسبول" },
+	"skateboard": { "en": "Skateboard", "ar": "لوح تزلج" },
+	"surfboard": { "en": "Surfboard", "ar": "لوح ركوب الأمواج" },
+	"tennis racket": { "en": "Tennis Racket", "ar": "مضرب تنس" },
+	"bottle": { "en": "Bottle", "ar": "زجاجة" },
+	"wine glass": { "en": "Wine Glass", "ar": "كأس نبيذ" },
+	"cup": { "en": "Cup", "ar": "كوب" },
+	"fork": { "en": "Fork", "ar": "شوكة" },
+	"knife": { "en": "Knife", "ar": "سكين" },
+	"spoon": { "en": "Spoon", "ar": "ملعقة" },
+	"bowl": { "en": "Bowl", "ar": "وعاء" },
+	"banana": { "en": "Banana", "ar": "موز" },
+	"apple": { "en": "Apple", "ar": "تفاح" },
+	"sandwich": { "en": "Sandwich", "ar": "شطيرة" },
+	"orange": { "en": "Orange", "ar": "برتقال" },
+	"broccoli": { "en": "Broccoli", "ar": "بروكلي" },
+	"carrot": { "en": "Carrot", "ar": "جزر" },
+	"hot dog": { "en": "Hot Dog", "ar": "نقانق" },
+	"pizza": { "en": "Pizza", "ar": "بيتزا" },
+	"donut": { "en": "Donut", "ar": "دونات" },
+	"cake": { "en": "Cake", "ar": "كعكة" },
+	"chair": { "en": "Chair", "ar": "كرسي" },
+	"sofa": { "en": "Sofa", "ar": "أريكة" },
+	"potted plant": { "en": "Potted Plant", "ar": "نبتة في وعاء" },
+	"bed": { "en": "Bed", "ar": "سرير" },
+	"dining table": { "en": "Dining Table", "ar": "طاولة طعام" },
+	"toilet": { "en": "Toilet", "ar": "مرحاض" },
+	"sink": { "en": "Sink", "ar": "مغسلة" },
+	"bench": { "en": "Bench", "ar": "مقعد" },
+	"laptop": { "en": "Laptop", "ar": "حاسوب محمول" },
+	"TV": { "en": "TV", "ar": "تلفاز" },
+	"cell phone": { "en": "Cell Phone", "ar": "هاتف محمول" },
+	"keyboard": { "en": "Keyboard", "ar": "لوحة مفاتيح" },
+	"mouse": { "en": "Mouse", "ar": "فأرة" },
+	"refrigerator": { "en": "Refrigerator", "ar": "ثلاجة" },
+	"microwave": { "en": "Microwave", "ar": "ميكروويف" },
+	"oven": { "en": "Oven", "ar": "فرن" },
+	"toaster": { "en": "Toaster", "ar": "محمصة" },
+	"hair drier": { "en": "Hair Drier", "ar": "مجفف شعر" },
+	"book": { "en": "Book", "ar": "كتاب" },
+	"clock": { "en": "Clock", "ar": "ساعة" },
+	"vase": { "en": "Vase", "ar": "مزهرية" },
+	"scissors": { "en": "Scissors", "ar": "مقص" },
+	"teddy bear": { "en": "Teddy Bear", "ar": "دب محشو" },
+	"toothbrush": { "en": "Toothbrush", "ar": "فرشاة أسنان" },
+	"remote": { "en": "Remote", "ar": "جهاز تحكم" },
+	"people": { "en": "People", "ar": "أشخاص" },
+	"vehicles": { "en": "Vehicles", "ar": "مركبات" },
+	"animals": { "en": "Animals", "ar": "حيوانات" },
+	"accessories": { "en": "Accessories", "ar": "إكسسوارات" },
+	"sports": { "en": "Sports", "ar": "رياضة" },
+	"tableware": { "en": "Tableware", "ar": "أدوات المائدة" },
+	"food": { "en": "Food", "ar": "طعام" },
+	"furniture": { "en": "Furniture", "ar": "أثاث" },
+	"electronics": { "en": "Electronics", "ar": "إلكترونيات" },
+	"home appliances": { "en": "Home Appliances", "ar": "أجهزة منزلية" },
+	"items": { "en": "Items", "ar": "أشياء" },
+	"hazard": { "en": "Hazard", "ar": "خطر" }
 }

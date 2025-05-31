@@ -1,7 +1,9 @@
-import config from "@/constants/config.json";
+import getBackendUrl from "@/constants/getBackendUrl";
+
 import { useAppStore } from "@/hooks/useAppStore";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { AudioModule, RecordingPresets, useAudioRecorder } from "expo-audio";
+import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet } from "react-native";
@@ -16,11 +18,11 @@ export default function App() {
 	const getIconSize = () => {
 		switch (sizeSetting) {
 			case "small":
-				return 60;
+				return 40;
 			case "large":
-				return 90;
+				return 80;
 			default:
-				return 75;
+				return 65;
 		}
 	};
 
@@ -31,6 +33,7 @@ export default function App() {
 
 	const record = async () => {
 		Speech.stop();
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 		await audioRecorder.prepareToRecordAsync();
 		audioRecorder.record();
 		setIsRecording(true);
@@ -50,7 +53,7 @@ export default function App() {
 					type: "audio/m4a",
 				} as any);
 
-				const response = await fetch(`http://${config.backendURLBase}/llm?client_id=${clientId}`, {
+				const response = await fetch(`http://${await getBackendUrl()}/llm?client_id=${clientId}`, {
 					method: "POST",
 					body: formData,
 					headers: {
@@ -90,7 +93,13 @@ export default function App() {
 			style={({ pressed }) => [
 				styles.micButton,
 				{
-					backgroundColor: isProcessing ? "#95a5a6" : pressed ? "#c0392b" : isRecording ? "#e74c3c" : "#2ecc71",
+					backgroundColor: isProcessing
+						? "#95a5a6" // gray during processing
+						: pressed
+						? "#e67e22" // darker orange when pressed
+						: isRecording
+						? "#d35400" // deeper orange when recording
+						: "#f39c12",
 					width: buttonSize,
 					height: buttonSize,
 					borderRadius: buttonSize / 2,

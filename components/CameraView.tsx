@@ -1,4 +1,5 @@
-import Config from "@/constants/config.json";
+import getBackendUrl from "@/constants/getBackendUrl";
+
 import { useAppStore } from "@/hooks/useAppStore";
 import { useAppState } from "@react-native-community/hooks";
 import { useIsFocused } from "@react-navigation/native";
@@ -9,19 +10,18 @@ import { StyleSheet, Text, View } from "react-native";
 import { Camera, useCameraDevice, useCameraFormat, useCameraPermission, useSkiaFrameProcessor } from "react-native-vision-camera";
 import { useRunOnJS } from "react-native-worklets-core";
 
-const WS_URL = `ws://${Config.backendURLBase}/ws`;
-
 export default function VisionYOLO() {
 	const { hasPermission, requestPermission } = useCameraPermission();
 	const device = useCameraDevice("back");
 	const [boxes, setBoxes] = useState<{ box: [number, number, number, number]; confidence: number; label: string }[]>([]);
 	const [wsConnected, setWsConnected] = useState(false);
 	const ws = useRef<WebSocket | null>(null);
-	const font = useFont(require("@/assets/fonts/SpaceMono-Regular.ttf"), 16); // slightly larger
+	const font = useFont(require("@/assets/fonts/SpaceMono-Regular.ttf"), 16);
 
 	const spokenHazards = useRef<Map<string, NodeJS.Timeout | number>>(new Map());
 	const settings = useAppStore((state) => state.settings);
 	const hazardLabels = settings?.hazards ?? [];
+	const isMuted = useAppStore((state) => state.mute); // 👈 Zustand mute state
 
 	const isFocused = useIsFocused();
 	const appState = useAppState();
@@ -34,7 +34,9 @@ export default function VisionYOLO() {
 		if (Array.isArray(boxes)) {
 			boxes.forEach((box) => {
 				if (hazardLabels.includes(box.label) && !spokenHazards.current.has(box.label)) {
-					Speech.speak(`Warning, ${box.label} detected infront of you.`);
+					if (!isMuted) {
+						Speech.speak(`Warning, ${box.label} detected infront of you.`);
+					}
 					const timeout = setTimeout(() => {
 						spokenHazards.current.delete(box.label);
 					}, 5000);
@@ -42,7 +44,7 @@ export default function VisionYOLO() {
 				}
 			});
 		}
-	}, [boxes, hazardLabels]);
+	}, [boxes, hazardLabels, isMuted]);
 
 	const sendDataToBackend = useRunOnJS((data: any) => {
 		if (ws.current && ws.current.readyState === WebSocket.OPEN) {
@@ -59,34 +61,39 @@ export default function VisionYOLO() {
 	useEffect(() => {
 		let reconnectTimeout: ReturnType<typeof setTimeout>;
 
-		function connectWebSocket() {
-			ws.current = new WebSocket(WS_URL);
+		async function connectWebSocket() {
+			try {
+				const backendUrl = await getBackendUrl(); // ✅ get the URL here
+				ws.current = new WebSocket(`ws://${backendUrl}/ws`);
 
-			ws.current.onopen = () => {
-				console.log("WebSocket connected");
-				setWsConnected(true);
-			};
+				ws.current.onopen = () => {
+					console.log("WebSocket connected");
+					setWsConnected(true);
+				};
 
-			ws.current.onmessage = (event) => {
-				try {
-					const data = JSON.parse(event.data);
-					if (data.client_id) {
-						useAppStore.getState().setClientId(data.client_id);
-						console.log("Received client_id:", data.client_id);
-					} else {
-						setBoxes(data);
+				ws.current.onmessage = (event) => {
+					try {
+						const data = JSON.parse(event.data);
+						if (data.client_id) {
+							useAppStore.getState().setClientId(data.client_id);
+							console.log("Received client_id:", data.client_id);
+						} else {
+							setBoxes(data);
+						}
+					} catch (err) {
+						console.error("Failed to parse box JSON:", err);
 					}
-				} catch (err) {
-					console.error("Failed to parse box JSON:", err);
-				}
-			};
+				};
 
-			ws.current.onerror = () => {};
+				ws.current.onerror = () => {};
 
-			ws.current.onclose = () => {
-				setWsConnected(false);
-				reconnectTimeout = setTimeout(connectWebSocket, 2000);
-			};
+				ws.current.onclose = () => {
+					setWsConnected(false);
+					reconnectTimeout = setTimeout(connectWebSocket, 2000); // retry
+				};
+			} catch (err) {
+				console.error("Failed to connect WebSocket:", err);
+			}
 		}
 
 		connectWebSocket();

@@ -1,4 +1,5 @@
-import Config from "@/constants/config.json"; // Adjust the import based on your project structure
+import getBackendUrl from "@/constants/getBackendUrl";
+
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
@@ -17,7 +18,7 @@ export default function Register() {
 
 		setLoading(true);
 		try {
-			const response = await fetch(`http://${Config.backendURLBase}/register`, {
+			const response = await fetch(`http://${await getBackendUrl()}/register`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, password }),

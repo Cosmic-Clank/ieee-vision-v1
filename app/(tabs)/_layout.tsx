@@ -1,10 +1,8 @@
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import React from "react";
-import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
 import language from "@/constants/language.json";
 import { useAppStore } from "@/hooks/useAppStore";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -22,30 +20,44 @@ export default function TabLayout() {
 	return (
 		<Tabs
 			screenOptions={{
-				tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+				tabBarActiveTintColor: "black",
 				headerShown: true,
 				tabBarButton: HapticTab,
 				tabBarBackground: TabBarBackground,
-				tabBarStyle: Platform.select({
-					ios: {
-						position: "absolute",
-					},
-					default: {},
-				}),
+				tabBarStyle: {
+					backgroundColor: "#f3edf7",
+					borderTopWidth: 0,
+				},
 				headerTitleAlign: "center",
+				headerTitleStyle: {
+					fontSize: 20,
+					fontWeight: "bold",
+				},
+				headerStyle: {
+					backgroundColor: "#f3edf7",
+				},
+				headerTintColor: "black",
+				tabBarLabelStyle: { fontSize: 12, textTransform: "none" },
+				tabBarIconStyle: { marginTop: 0, marginBottom: 0 },
+				tabBarItemStyle: { paddingTop: 5, paddingBottom: 5, paddingHorizontal: 10 },
+				tabBarInactiveTintColor: "darkgray",
 			}}>
 			<Tabs.Screen
 				name='index'
 				options={{
 					title: t("camera"),
 					tabBarIcon: ({ color }) => <MaterialIcons color={color} size={28} name={"camera"} />,
-				}}
-			/>
-			<Tabs.Screen
-				name='files'
-				options={{
-					title: t("files"),
-					tabBarIcon: ({ color }) => <MaterialIcons color={color} size={28} name={"document-scanner"} />,
+					headerRight: () => (
+						<MaterialIcons
+							name='help-outline'
+							size={24}
+							color={"black"}
+							style={{ marginRight: 10 }}
+							onPress={() => {
+								router.push("/(tabs)/tutorial");
+							}}
+						/>
+					),
 				}}
 			/>
 			<Tabs.Screen
@@ -53,6 +65,25 @@ export default function TabLayout() {
 				options={{
 					title: t("settings"),
 					tabBarIcon: ({ color }) => <MaterialIcons color={color} size={28} name={"settings"} />,
+				}}
+			/>
+			<Tabs.Screen
+				name='tutorial'
+				options={{
+					title: t("tutorial"),
+					tabBarIcon: ({ color }) => <MaterialIcons color={color} size={28} name={"settings"} />,
+					href: null,
+					headerLeft: () => (
+						<MaterialIcons
+							name='arrow-back'
+							size={24}
+							color={"black"}
+							style={{ marginLeft: 10 }}
+							onPress={() => {
+								router.back();
+							}}
+						/>
+					),
 				}}
 			/>
 		</Tabs>

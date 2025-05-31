@@ -1,6 +1,7 @@
-import config from "@/constants/config.json";
+import getBackendUrl from "@/constants/getBackendUrl";
 import { useAppStore } from "@/hooks/useAppStore";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet } from "react-native";
@@ -13,11 +14,11 @@ export default function DescribeSceneButton() {
 	const getIconSize = () => {
 		switch (sizeSetting) {
 			case "small":
-				return 40;
+				return 30;
 			case "large":
-				return 70;
+				return 50;
 			default:
-				return 55;
+				return 45;
 		}
 	};
 
@@ -28,10 +29,11 @@ export default function DescribeSceneButton() {
 
 	const handleDescribeScene = async () => {
 		Speech.stop();
+		Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 		setIsProcessing(true);
 
 		try {
-			const response = await fetch(`http://${config.backendURLBase}/llm-from-text?client_id=${clientId}`, {
+			const response = await fetch(`http://${await getBackendUrl()}/llm-from-text?client_id=${clientId}`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

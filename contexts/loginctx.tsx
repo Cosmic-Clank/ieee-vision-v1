@@ -1,4 +1,5 @@
-import Config from "@/constants/config.json";
+import getBackendUrl from "@/constants/getBackendUrl";
+
 import { useAppStore } from "@/hooks/useAppStore";
 import { useStorageState } from "@/hooks/useStorageState";
 import { createContext, use, type PropsWithChildren } from "react";
@@ -32,7 +33,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 		const { setSettings } = useAppStore.getState(); // Access zustand setters
 
 		try {
-			const res = await fetch(`http://${Config.backendURLBase}/signin`, {
+			const res = await fetch(`http://${await getBackendUrl()}/signin`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, password }),
@@ -48,7 +49,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 			setSession(JSON.stringify(data));
 
 			// 🔥 Get user settings from backend
-			const settingsRes = await fetch(`http://${Config.backendURLBase}/settings?user_id=${data.user.id}`);
+			const settingsRes = await fetch(`http://${await getBackendUrl()}/settings?user_id=${data.user.id}`);
 			const settingsData = await settingsRes.json();
 
 			if (!settingsRes.ok) {

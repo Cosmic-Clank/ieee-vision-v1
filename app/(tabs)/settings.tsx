@@ -1,4 +1,5 @@
-import Config from "@/constants/config.json";
+import getBackendUrl from "@/constants/getBackendUrl";
+
 import language from "@/constants/language.json";
 import { useSession } from "@/contexts/loginctx";
 import { useAppStore } from "@/hooks/useAppStore";
@@ -46,7 +47,7 @@ export default function SettingsScreen() {
 		const fetchSettings = async () => {
 			setLoading(true);
 			try {
-				const res = await fetch(`http://${Config.backendURLBase}/settings?user_id=${session.user.id}`);
+				const res = await fetch(`http://${await getBackendUrl()}/settings?user_id=${session.user.id}`);
 				const data = await res.json();
 				setSettings(data);
 				setLocalSettings(data);
@@ -89,7 +90,7 @@ export default function SettingsScreen() {
 			const allHazards = Object.values(hazardCategoryGroups).flat();
 			const cleanedHazards = localSettings.hazards.filter((h) => allHazards.includes(h));
 
-			const res = await fetch(`http://${Config.backendURLBase}/settings`, {
+			const res = await fetch(`http://${await getBackendUrl()}/settings`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ user_id: session.user.id, ...localSettings, hazards: cleanedHazards }),
@@ -167,7 +168,7 @@ export default function SettingsScreen() {
 				return (
 					<View key={category} style={styles.categorySection}>
 						<View style={styles.categoryHeader}>
-							<Text style={[styles.categoryLabel, { fontSize }]}>{category}</Text>
+							<Text style={[styles.categoryLabel, { fontSize }]}>{t(category as LanguageKey)}</Text>
 							<Switch value={categorySwitchValue} onValueChange={toggleCategory} />
 						</View>
 						{hazards.map((hazard) => (
@@ -184,7 +185,7 @@ export default function SettingsScreen() {
 				{t("save settings")}
 			</Button>
 
-			<Button mode='text' textColor='#e74c3c' onPress={handleSignOut} style={styles.signOutButton}>
+			<Button mode='contained' buttonColor='#e74c3c' textColor='#fff' onPress={handleSignOut} style={styles.signOutButton}>
 				{t("sign out")}
 			</Button>
 		</ScrollView>
@@ -194,7 +195,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
 	container: {
 		padding: 20,
-		backgroundColor: "#fff",
+		backgroundColor: "#fffbfe",
 	},
 	centered: {
 		flex: 1,

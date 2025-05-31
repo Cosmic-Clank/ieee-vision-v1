@@ -1,7 +1,7 @@
 import { SplashScreenController } from "@/components/splash";
 import { SessionProvider, useSession } from "@/contexts/loginctx";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -20,10 +20,10 @@ export default function RootLayout() {
 
 	return (
 		<SessionProvider>
-			<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+			<ThemeProvider value={DefaultTheme}>
 				<SplashScreenController />
 				<RootNavigator />
-				<StatusBar style='auto' />
+				<StatusBar style='dark' />
 			</ThemeProvider>
 		</SessionProvider>
 	);

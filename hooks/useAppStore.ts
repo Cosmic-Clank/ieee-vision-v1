@@ -10,6 +10,8 @@ interface AppState {
 		hazards: string[];
 	} | null;
 	setSettings: (settings: AppState["settings"]) => void;
+	mute: boolean;
+	setMute: (mute: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -18,4 +20,6 @@ export const useAppStore = create<AppState>((set) => ({
 	session: null,
 	settings: null,
 	setSettings: (settings) => set({ settings }),
+	mute: false,
+	setMute: (mute: boolean) => set({ mute }),
 }));
