@@ -111,7 +111,7 @@ export default function VisionYOLO() {
 
 		frame.render();
 
-		if (!lastSentRef.current || frame.timestamp - lastSentRef.current > 200_000_000) {
+		if (!lastSentRef.current || frame.timestamp - lastSentRef.current > 100_000_000 / 2) {
 			lastSentRef.current = frame.timestamp;
 			const buffer = frame.toArrayBuffer();
 			const data = {
